@@ -62,7 +62,7 @@
             status.innerText = "기도 내용: " + prayerText;
 
             // 3. 서버로 기도 제목 전송
-            const response = await fetch('http://localhost:3000/api/prayer', {
+            const response = await fetch('https://my-prayer-kiosk.onrender.com/api/prayer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ device_uuid: 'tablet-kiosk', prayer_text: prayerText })
