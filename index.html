@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>기도 키오스크</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                        url('https://images.unsplash.com/photo-1438032005730-c779502df39b?q=80&w=2071&auto=format&fit=crop'); /* 교회 느낌 배경 */
+            background-size: cover;
+            color: white;
+            font-family: 'Nanum Myeongjo', serif;
+        }
+        #status { font-size: 24px; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
+        #recordBtn {
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            transition: 0.3s;
+        }
+        #recordBtn:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.4); }
+    </style>
+</head>
+<body>
+    <div id="status">화면을 터치하고 기도를 시작하세요</div>
+    <button id="recordBtn">기도</button>
+
+    <script>
+        const recordBtn = document.getElementById('recordBtn');
+        const status = document.getElementById('status');
+
+        // 1. 음성 인식 설정 (STT)
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'ko-KR';
+
+        // 2. 음성 출력 설정 (TTS)
+        const speak = (text) => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ko-KR';
+            utterance.rate = 0.9; // 약간 천천히 인자하게
+            window.speechSynthesis.speak(utterance);
+        };
+
+        recordBtn.onclick = () => {
+            recognition.start();
+            status.innerText = "기도를 듣고 있습니다...";
+        };
+
+        recognition.onresult = async (event) => {
+            const prayerText = event.results[0][0].transcript;
+            status.innerText = "기도 내용: " + prayerText;
+
+            // 3. 서버로 기도 제목 전송
+            const response = await fetch('http://localhost:3000/api/prayer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ device_uuid: 'tablet-kiosk', prayer_text: prayerText })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                status.innerText = "하나님의 응답을 듣는 중...";
+                speak(data.response); // AI의 답변을 목소리로 읽어줌
+            }
+        };
+    </script>
+</body>
+</html>
