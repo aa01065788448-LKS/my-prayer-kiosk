@@ -4,6 +4,14 @@ const { createClient } = require('@supabase/supabase-js');
 const { OpenAI } = require('openai');
 
 const app = express();
+// 1. 추가할 코드: 접속하면 index.html 파일을 보여주라는 명령입니다.
+const path = require('path');
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// 기존 코드 (app.use(express.json())...)는 이 아래에 그대로 두시면 됩니다.
 app.use(express.json());
 app.use(require('cors')());
 
